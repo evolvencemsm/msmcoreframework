@@ -8,13 +8,13 @@ package msm.java.core.framework.service;
 
 /**
  *
- * @author Administrator
+ * @author Murugan Sivananantha Perumal
  */
 
 import java.io.*;
 import java.net.*;
-import msm.java.core.framework.SystemUtility;
 import msm.java.core.framework.interfaces.*;
+import msm.java.core.framework.SystemUtility;
 
 public class NetworkServer 
         extends Thread 
@@ -26,7 +26,7 @@ public class NetworkServer
      */
     private int socketport;
     private String clientdata;
-        private String clientaddress;
+    private String clientaddress;
     private static boolean StopService;
     
     private Socket server;
@@ -37,11 +37,15 @@ public class NetworkServer
      */
     public NetworkServer()
     {
-        
+        Initialize();
     }
     
     public NetworkServer(int port)
     {
+        
+        this.socketport = port;
+        
+        Initialize();
         
     }
     
@@ -49,14 +53,62 @@ public class NetworkServer
      * Public Methods 
      */
     
-    public String GetClientAddress()
+    public String ReadRequestorAddress()
     {
+        
+        DataInputStream inputstream;
+        
+        try 
+        {
+            
+            if(server != null)
+            {
+
+                clientaddress = server.getRemoteSocketAddress().toString();
+
+                inputstream = new DataInputStream(server.getInputStream());
+
+                clientdata = inputstream.readUTF();
+
+            }
+            
+        }
+        catch(Exception ex)
+        {
+            SystemUtility.WriteLog(ex);
+        }
+        
         return clientaddress;
+        
     }
 
-    public String GetClientData()
+    public String ReadRequest()
     {
+        
+        DataInputStream inputstream;
+        
+        try 
+        {
+            
+                if(server != null)
+                {
+                    
+                    clientaddress = server.getRemoteSocketAddress().toString();
+                    
+                    inputstream = new DataInputStream(server.getInputStream());
+                    
+                    clientdata = inputstream.readUTF();
+                    
+                }
+            
+        }
+        catch(Exception ex)
+        {
+            SystemUtility.WriteLog(ex);
+        }
+        
         return clientdata;
+        
     }
     
     public void WriteResponse(String message)
@@ -109,29 +161,16 @@ public class NetworkServer
     public void run()
     {
         
-        DataInputStream inputstream;
-        
         try 
         {
             
             SystemUtility.WriteLog("Server started.");
-                                
+            
             while(true)
             {
                 
                 server = serversocket.accept();
                 
-                if(server != null)
-                {
-                    
-                    clientaddress = server.getRemoteSocketAddress().toString();
-                    
-                    inputstream = new DataInputStream(server.getInputStream());
-                    
-                    clientdata = inputstream.readUTF();
-                    
-                }
-
                 if(NetworkServer.StopService)
                 {
                     
@@ -153,11 +192,7 @@ public class NetworkServer
     
     public void StartService()
     {
-        
         NetworkServer.StopService = false;
-        
-        this.run();
-        
     }
     
     public void StopService()
